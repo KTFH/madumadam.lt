@@ -108,7 +108,7 @@ const loadSingleEntryPoint = ({
 						//
 						// In result, mount is triggered a couple times.
 						//
-						// Context: https://github.com/sergiu-radu/blocksy/issues/3374
+						// Context: https://github.com/creative-themes/blocksy/issues/3374
 						event.stopPropagation()
 
 						event.preventDefault()
@@ -217,20 +217,30 @@ const loadSingleEntryPoint = ({
 
 		if (triggerDescriptor.id === 'hover-with-touch') {
 			allEls.map((el) => {
-				if (el.hasLazyLoadMouseOverListener) {
+				if (el.dataset.autoplay && parseFloat(el.dataset.autoplay)) {
+					const elRect = el.getBoundingClientRect()
+
+					if (
+						// Ensure element is visible
+						elRect.width > 0 &&
+						!el.hasLazyLoadMouseOverAutoplayListener
+					) {
+						el.hasLazyLoadMouseOverAutoplayListener = true
+
+						setTimeout(() => {
+							load().then((arg) =>
+								mount({
+									...arg,
+									el,
+								})
+							)
+						}, 10)
+					}
+
 					return
 				}
 
-				if (el.dataset.autoplay && parseFloat(el.dataset.autoplay)) {
-					setTimeout(() => {
-						load().then((arg) =>
-							mount({
-								...arg,
-								el,
-							})
-						)
-					}, 10)
-
+				if (el.hasLazyLoadMouseOverListener) {
 					return
 				}
 
@@ -291,9 +301,26 @@ const loadSingleEntryPoint = ({
 				// false | number | true
 				let mouseOverState = false
 
+				const isIgnored = (event) => {
+					if (triggerDescriptor.ignoredEls) {
+						return triggerDescriptor.ignoredEls.some((selector) => {
+							return (
+								event.target.closest(selector) ||
+								event.target.matches(selector)
+							)
+						})
+					}
+
+					return false
+				}
+
 				el.addEventListener(
 					'mouseover',
 					(event) => {
+						if (isIgnored(event)) {
+							return
+						}
+
 						// Add delay to wait for potential click event
 						// This should be done only on touch devices to facilitate
 						// devices that have both touch and pointin capabilities.
@@ -321,6 +348,10 @@ const loadSingleEntryPoint = ({
 					el.addEventListener(
 						'click',
 						(event) => {
+							if (isIgnored(event)) {
+								return
+							}
+
 							// Previously, iOS devices were handling such
 							// behavior out of the box, but now it is
 							// mandatory to prevent the default behavior of the

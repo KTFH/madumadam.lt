@@ -20,6 +20,12 @@ export const wooEntryPoints = [
 		trigger: [
 			{
 				id: 'hover-with-click',
+
+				// We should never affect the pills because the click events on
+				// the pills are very fragile and if we will do a preventDefault
+				// on them, they will not work. This is especially tricky on
+				// touch devices.
+				ignoredEls: ['.flexy-pills'],
 			},
 		],
 	},
@@ -75,5 +81,13 @@ export const wooEntryPoints = [
 		els: '#woo-cart-panel .qty',
 		trigger: ['change'],
 		load: () => import('./quantity-update'),
+	},
+
+	{
+		els: '.product .ct-card-variation-swatches',
+		load: () => import('./variation-stock'),
+		condition: () =>
+			!!document.querySelector('.product .ct-woo-card-stock'),
+		trigger: ['hover'],
 	},
 ]

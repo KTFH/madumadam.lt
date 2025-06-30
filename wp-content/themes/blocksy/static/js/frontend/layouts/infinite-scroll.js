@@ -126,6 +126,7 @@ export const mount = (paginationContainer) => {
 				: null,
 
 		outlayer: null,
+		history: 'push',
 
 		scrollThreshold: paginationType === 'infinite_scroll' ? 400 : false,
 
@@ -144,6 +145,10 @@ export const mount = (paginationContainer) => {
 							'wc_price_based_country_ajax_geolocation'
 						)
 					}
+
+					document.dispatchEvent(
+						new CustomEvent('cfvswVariationLoad', { detail: {} })
+					)
 				}, 100)
 			})
 

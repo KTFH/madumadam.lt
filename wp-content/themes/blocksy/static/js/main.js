@@ -41,7 +41,6 @@ let allFrontendEntryPoints = [
 	{
 		els: '.flexy-container[data-flexy*="no"]',
 		load: () => import('./frontend/flexy'),
-		events: ['ct:flexy:update'],
 		trigger: ['hover-with-touch'],
 	},
 
@@ -58,9 +57,15 @@ let allFrontendEntryPoints = [
 	},
 
 	{
-		els: '.ct-media-container[data-media-id], .ct-dynamic-media[data-media-id]',
+		els: '.ct-media-container[data-media-id]:not([data-state*="hover"]), .ct-dynamic-media[data-media-id]:not([data-state*="hover"])',
 		load: () => import('./frontend/lazy/video-on-click'),
 		trigger: ['click', 'slight-mousemove', 'scroll'],
+	},
+
+	{
+		els: '.ct-media-container[data-media-id][data-state*="hover"], .ct-dynamic-media[data-media-id][data-state*="hover"]',
+		load: () => import('./frontend/lazy/video-on-click'),
+		trigger: ['click', 'hover-with-touch'],
 	},
 
 	{

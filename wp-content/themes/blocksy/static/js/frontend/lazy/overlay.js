@@ -42,6 +42,10 @@ const showOffcanvas = (initialSettings) => {
 
 	if (settings.shouldBeInert) {
 		settings.container.inert = false
+
+		// aria-modal should be added only when modal is opened
+		// https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-modal
+		settings.container.setAttribute('aria-modal', 'true')
 	}
 
 	if (settings.focus) {
@@ -136,6 +140,11 @@ const showOffcanvas = (initialSettings) => {
 				scrollLockManager().enable()
 
 				setTimeout(() => {
+					// If panel is closed, we should not block the scroll
+					if (!document.body.hasAttribute('data-panel')) {
+						return
+					}
+
 					scrollLockManager().disable(
 						settings.computeScrollContainer
 							? settings.computeScrollContainer()
@@ -175,6 +184,7 @@ const showOffcanvas = (initialSettings) => {
 	})
 
 	ctEvents.trigger('ct:modal:opened', settings.container)
+	ctEvents.trigger('blocksy:frontend:init')
 	;[...settings.container.querySelectorAll('.ct-toggle-dropdown-mobile')].map(
 		(arrow) => {
 			mountMobileMenu(arrow)
@@ -197,6 +207,10 @@ const hideOffcanvas = (initialSettings, args = {}) => {
 
 	if (settings.shouldBeInert) {
 		settings.container.inert = true
+
+		// aria-modal should be removed when modal is closed
+		// https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-modal
+		settings.container.removeAttribute('aria-modal')
 	}
 
 	if (!document.body.hasAttribute('data-panel')) {
@@ -227,10 +241,9 @@ const hideOffcanvas = (initialSettings, args = {}) => {
 		}
 	})
 
-	settings.container.classList.remove('active')
-
 	if (args.closeInstant) {
 		document.body.removeAttribute('data-panel')
+		settings.container.classList.remove('active')
 
 		scrollLockManager().enable(
 			settings.computeScrollContainer
@@ -246,6 +259,7 @@ const hideOffcanvas = (initialSettings, args = {}) => {
 
 		whenTransitionEnds(settings.container, () => {
 			document.body.removeAttribute('data-panel')
+			settings.container.classList.remove('active')
 
 			scrollLockManager().enable(
 				settings.computeScrollContainer
